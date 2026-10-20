@@ -1,0 +1,6 @@
+# Arquivos temporários de depuração
+_tmp_*
+
+# Vercel / editor
+.vercel/
+.vscode/
