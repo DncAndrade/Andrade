@@ -13,9 +13,9 @@
   ];
 
   const DEMO = {
-    aluno:       { user: 'ana.nogueira', pass: '123456' },
-    professor:   { user: 'm.alves',      pass: '123456' },
-    coordenacao: { user: 'p.rocha',      pass: '123456' }
+    aluno:       { user: 'ana.nogueira@imperial.edu.br', pass: 'Imperial@2026' },
+    professor:   { user: 'marcos.alves@imperial.edu.br', pass: 'Imperial@2026' },
+    coordenacao: { user: 'patricia.rocha@imperial.edu.br', pass: 'Imperial@2026' }
   };
 
   let activeProfile = 'aluno';
@@ -84,7 +84,7 @@
                 <div class="input-group">
                   ${icon('user')}
                   <input class="input" type="text" id="loginUser" name="username"
-                         placeholder="ana.nogueira" autocomplete="username" required>
+                         placeholder="seu.nome@imperial.edu.br" autocomplete="username" required>
                 </div>
               </div>
 
@@ -252,11 +252,9 @@
         btn.disabled = true;
         btn.innerHTML = `<span class="spinner"></span><span>Entrando…</span>`;
 
-        setTimeout(() => {
-          const result = global.AVA.store.login(user, pass, activeProfile);
+        global.AVA.store.login(user, pass, activeProfile).then((result) => {
           btn.disabled = false;
           btn.innerHTML = `${icon('arrow-right', 'icon-sm')}<span>Entrar</span>`;
-
           if (!result.ok) {
             showAlert(root, result.message);
             passInput.value = '';
@@ -265,7 +263,12 @@
           }
           global.AVA.ui.toast(`Bem-vinda(o), ${global.AVA.ui.firstName(result.user.name)}!`, 'success', 'Acesso liberado');
           global.AVA.app.navigate('#/dashboard');
-        }, 250);
+        }).catch((error) => {
+          console.error('[AVA] Erro inesperado:', error);
+          btn.disabled = false;
+          btn.innerHTML = `${icon('arrow-right', 'icon-sm')}<span>Entrar</span>`;
+          showAlert(root, 'Ocorreu um erro inesperado. Tente novamente.');
+        });
       });
     }
   }
