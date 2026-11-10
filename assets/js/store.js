@@ -76,20 +76,43 @@
   }
 
   /* ---------- Sessão ---------- */
-  function login(username, password, tab) {
-    const users = global.AVA.DATA.users;
-    const user = users.find((u) => {
-      const query = String(username).trim().toLowerCase();
-      const matchName = u.username.toLowerCase() === query;
-      const matchMail = u.email.toLowerCase() === query;
-      return (matchName || matchMail) && u.password === password && (!tab || u.tab === tab);
-    });
+  const API_URL = 'https://backend-ava-saaa.onrender.com';
 
-    if (!user) return { ok: false, message: 'Usuário ou senha inválidos para este perfil de acesso.' };
+  async function login(username, password, tab) {
+    try {
+      const response = await fetch(API_URL + '/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identificador: String(username).trim(), senha: password, perfil: tab })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) return { ok: false, message: payload.erro || payload.message || 'Usuário ou senha inválidos para este perfil.' };
 
-    state.session = { userId: user.id, role: user.role, tab: user.tab, name: user.name, email: user.email };
-    commit('login');
-    return { ok: true, user: clone(user) };
+      const account = payload.usuario || payload.user;
+      if (!account) return { ok: false, message: 'O servidor não retornou os dados do usuário.' };
+
+      const role = account.tipo || account.tipo_usuario || tab;
+      const email = String(account.email || '').toLowerCase();
+      const users = global.AVA.DATA.users;
+      let user = users.find((item) => String(item.email || '').toLowerCase() === email);
+      if (!user) {
+        user = {
+          id: account.id || ('api-' + email),
+          role, tab: role, name: account.nome || account.name || username,
+          username: email ? email.split('@')[0] : String(username),
+          email: account.email || '', password: '',
+          ra: account.matricula || '', course: account.curso || '',
+          avatarColor: role === 'professor' ? 'purple' : role === 'coordenacao' ? 'cyan' : 'brand'
+        };
+        users.push(user);
+      }
+      state.session = { userId: user.id, role: user.role, tab: user.tab, name: user.name, email: user.email };
+      commit('login');
+      return { ok: true, user: clone(user) };
+    } catch (error) {
+      console.error('[AVA] Erro ao conectar ao backend:', error);
+      return { ok: false, message: 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.' };
+    }
   }
 
   function logout() {
