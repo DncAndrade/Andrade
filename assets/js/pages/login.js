@@ -12,12 +12,6 @@
     { key: 'coordenacao', label: 'Coordenação', icon: 'building', hint: 'Indicadores, turmas e gestão do curso' }
   ];
 
-  const DEMO = {
-    aluno:       { user: 'ana.nogueira', pass: '123456' },
-    professor:   { user: 'm.alves',      pass: '123456' },
-    coordenacao: { user: 'p.rocha',      pass: '123456' }
-  };
-
   let activeProfile = 'aluno';
 
   function render(root) {
@@ -84,7 +78,7 @@
                 <div class="input-group">
                   ${icon('user')}
                   <input class="input" type="text" id="loginUser" name="username"
-                         placeholder="ana.nogueira" autocomplete="username" required>
+                         placeholder="seu.nome@imperial.edu.br" autocomplete="username" required>
                 </div>
               </div>
 
@@ -116,14 +110,6 @@
               </button>
             </form>
 
-            <div class="login-demo">
-              <div class="login-demo-head">
-                ${icon('info', 'icon-sm')}
-                <span>Acessos de demonstração</span>
-              </div>
-              <div class="login-demo-list" id="demoList"></div>
-            </div>
-
             <footer class="login-footer">
               <span>© 2026 Universidade Imperial · Todos os direitos reservados.</span>
             </footer>
@@ -133,28 +119,6 @@
     `;
 
     bind(root);
-    renderDemoList(root);
-  }
-
-  function renderDemoList(root) {
-    const list = $('#demoList', root);
-    if (!list) return;
-    const d = DEMO[activeProfile];
-    list.innerHTML = `
-      <button class="demo-item" type="button" data-fill>
-        <span class="demo-key">Usuário</span>
-        <code>${esc(d.user)}</code>
-        <span class="demo-key">Senha</span>
-        <code>${esc(d.pass)}</code>
-        ${icon('arrow-right', 'icon-sm')}
-      </button>
-    `;
-    list.querySelector('[data-fill]').addEventListener('click', () => {
-      $('#loginUser', root).value = d.user;
-      $('#loginPass', root).value = d.pass;
-      showAlert(root, null);
-      $('#loginSubmit', root).focus();
-    });
   }
 
   function showAlert(root, message) {
@@ -192,7 +156,6 @@
         const hint = $('#profileHint', root);
         if (hint) hint.textContent = p.hint;
         showAlert(root, null);
-        renderDemoList(root);
       });
     });
 
@@ -252,11 +215,9 @@
         btn.disabled = true;
         btn.innerHTML = `<span class="spinner"></span><span>Entrando…</span>`;
 
-        setTimeout(() => {
-          const result = global.AVA.store.login(user, pass, activeProfile);
+        global.AVA.store.login(user, pass, activeProfile).then((result) => {
           btn.disabled = false;
           btn.innerHTML = `${icon('arrow-right', 'icon-sm')}<span>Entrar</span>`;
-
           if (!result.ok) {
             showAlert(root, result.message);
             passInput.value = '';
@@ -265,7 +226,12 @@
           }
           global.AVA.ui.toast(`Bem-vinda(o), ${global.AVA.ui.firstName(result.user.name)}!`, 'success', 'Acesso liberado');
           global.AVA.app.navigate('#/dashboard');
-        }, 250);
+        }).catch((error) => {
+          console.error('[AVA] Erro inesperado:', error);
+          btn.disabled = false;
+          btn.innerHTML = `${icon('arrow-right', 'icon-sm')}<span>Entrar</span>`;
+          showAlert(root, 'Ocorreu um erro inesperado. Tente novamente.');
+        });
       });
     }
   }
