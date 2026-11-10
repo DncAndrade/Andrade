@@ -12,12 +12,6 @@
     { key: 'coordenacao', label: 'Coordenação', icon: 'building', hint: 'Indicadores, turmas e gestão do curso' }
   ];
 
-  const DEMO = {
-    aluno:       { user: 'ana.nogueira@imperial.edu.br', pass: 'Imperial@2026' },
-    professor:   { user: 'marcos.alves@imperial.edu.br', pass: 'Imperial@2026' },
-    coordenacao: { user: 'patricia.rocha@imperial.edu.br', pass: 'Imperial@2026' }
-  };
-
   let activeProfile = 'aluno';
 
   function render(root) {
@@ -116,14 +110,6 @@
               </button>
             </form>
 
-            <div class="login-demo">
-              <div class="login-demo-head">
-                ${icon('info', 'icon-sm')}
-                <span>Acessos de demonstração</span>
-              </div>
-              <div class="login-demo-list" id="demoList"></div>
-            </div>
-
             <footer class="login-footer">
               <span>© 2026 Universidade Imperial · Todos os direitos reservados.</span>
             </footer>
@@ -133,28 +119,6 @@
     `;
 
     bind(root);
-    renderDemoList(root);
-  }
-
-  function renderDemoList(root) {
-    const list = $('#demoList', root);
-    if (!list) return;
-    const d = DEMO[activeProfile];
-    list.innerHTML = `
-      <button class="demo-item" type="button" data-fill>
-        <span class="demo-key">Usuário</span>
-        <code>${esc(d.user)}</code>
-        <span class="demo-key">Senha</span>
-        <code>${esc(d.pass)}</code>
-        ${icon('arrow-right', 'icon-sm')}
-      </button>
-    `;
-    list.querySelector('[data-fill]').addEventListener('click', () => {
-      $('#loginUser', root).value = d.user;
-      $('#loginPass', root).value = d.pass;
-      showAlert(root, null);
-      $('#loginSubmit', root).focus();
-    });
   }
 
   function showAlert(root, message) {
@@ -192,7 +156,6 @@
         const hint = $('#profileHint', root);
         if (hint) hint.textContent = p.hint;
         showAlert(root, null);
-        renderDemoList(root);
       });
     });
 
